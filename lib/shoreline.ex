@@ -2,30 +2,10 @@ defmodule Shoreline do
   @moduledoc """
   GlobalId module contains an implementation of a guaranteed globally unique id system.     
   """
-
-  # Contraints
-  # Globally unique, can it inherit the node id and still be classed as a uuid?
-  # 100,000 req/sec implies that at any second we have 100,000 potential assigned id's
-  # 100,000 in 1 sec leaves 1000ms to assign seperating ids !== to assign via the timestamp alone
-  # Caller has/hasn't an internal ref id?
-  # 100000/s on node 0001 ||  0001 100000
-  # Timestamp is 13 units leaving 7 units to fill the rest.
-  
-  # [10][4][6] == {timestamp(seconds, id, hId}
-  # example:
-  # {1556600719, 0001, 000000} == 15566007190001000000
-  
-
-
-  # Structure
-
   #
   @doc """
   Please implement the following function.
   64 bit non negative integer output
-
-  non negative integer implies it's an unsigned 64 bit integer thus range lies between:
-   0 ~> 1844 6744 0737 0955 1615 == 20 integers
   """
   @spec get_id(non_neg_integer) :: non_neg_integer
   def get_id(last_id) do
@@ -41,6 +21,11 @@ defmodule Shoreline do
       end
   end
 
+
+ @doc """
+ validates the new id based off a KV store
+  
+  """
   @spec validate_guid(non_neg_integer, list) :: tuple
   def validate_guid(new_guid, existing_stack) do
     case Enum.member?(existing_stack, new_guid) do
@@ -55,25 +40,28 @@ defmodule Shoreline do
   end
 
   @doc """
-  
+  increments the host_id, this way we can manipulate the way it increments
   """
   @spec get_increment(list) :: non_neg_integer
   def get_increment(host_id), do: [Integer.undigits(host_id) + 1]
 
   @doc """
-  
+  parent function for any id needed to be deconstructed, this exposes this layer to the rest and doesnt touch the private functions
   """
   @spec format_last_id(non_neg_integer) :: tuple
   def format_last_id(last_id), do: format_to_guid(Integer.digits(last_id))
 
-
+ @doc """
+  formats the last_id into the tuple required to process further
+  """
   defp format_to_guid(list) do
     [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t] = list
     {[a,b,c,d,e,f,g,h,i,j], [k,l,m,n], [o,p,q,r,s,t]}
   end
 
-  
-
+  @doc """
+  Checks the current list size and then caluclates the required padding to keep it consistant
+  """
   def check_id_length([id], desired_length) do
     case desired_length do
       4 -> 
@@ -87,14 +75,18 @@ defmodule Shoreline do
     end
   end
 
-  defp format_to_global({time, node_id, host_id}), do: Integer.undigits(Integer.digits(time) ++ node_id ++ host_id)
+  @doc """
+  Checking the list length and adding padding if needed
+  """
   defp correct_list(list, len), do: List.duplicate(0, len - Enum.count(list)) ++ list
+
+  @doc """
+  Formats the new id into the correct format
+  """
+  defp format_to_global({time, node_id, host_id}), do: Integer.undigits(Integer.digits(time) ++ node_id ++ host_id)
+
+
  
-
-
-  # 534 -> 1024 - 534 
-
-
   #
   # You are given the following helper functions
   # Presume they are implemented - there is no need to implement them. 

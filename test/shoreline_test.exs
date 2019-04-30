@@ -22,14 +22,16 @@ defmodule ShorelineTest do
     assert Shoreline.format_last_id(last_id) == {[1, 5, 5, 6, 6, 0, 0, 7, 1, 9], [0, 0, 0, 1], [0, 0, 0, 0, 0, 0]}
   end
 
-   test "gets a unique id" do
+  test "gets a unique id & checks for validity" do
     time = Integer.digits(Shoreline.time_to_seconds)	
-    node_id = Shoreline.check_id_length([Shoreline.node_id], 4) 
+    node_id = Shoreline.check_id_length([Shoreline.node_id], 4)
+    
     old_host_id = 
     	Shoreline.get_increment(Integer.digits(:rand.uniform(99998)))	
     	|> Shoreline.check_id_length(6)
     
     last_id = Integer.undigits(time ++ node_id ++ old_host_id)
+
     new_host_id = 
     	Shoreline.get_increment(old_host_id) 
     	|> Shoreline.check_id_length(6)
@@ -37,5 +39,5 @@ defmodule ShorelineTest do
     assert Shoreline.get_id(last_id) == Integer.undigits(time ++ node_id ++ new_host_id)
   end
 
-  
+
 end
